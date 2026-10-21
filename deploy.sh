@@ -31,14 +31,20 @@ ZIP_FILE="/tmp/portfolio_deploy_auto.zip"
 rm -f "$ZIP_FILE"
 zip -q -r "$ZIP_FILE" index.html assets/ .nojekyll
 
-curl -s -X POST \
+NETLIFY_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/zip" \
   --data-binary @"$ZIP_FILE" \
-  "https://api.netlify.com/api/v1/sites/$SITE_ID/deploys" > /dev/null
+  "https://api.netlify.com/api/v1/sites/$SITE_ID/deploys")
 
 rm -f "$ZIP_FILE"
 
-echo "✅ SUCCESS! All platforms updated successfully:"
-echo "👉 Netlify:      https://bipinkumar28.netlify.app/"
+if [ "$NETLIFY_STATUS" = "200" ]; then
+    echo "✅ Netlify deployed: https://bipinkumar28.netlify.app/"
+else
+    echo "⚠️ Netlify deploy skipped/failed (HTTP $NETLIFY_STATUS). Please check Netlify auth token."
+fi
+
+echo "✅ SUCCESS! GitHub & GitHub Pages updated:"
 echo "👉 GitHub Pages: https://bipinyadav79133-commits.github.io/portfolio/"
+
